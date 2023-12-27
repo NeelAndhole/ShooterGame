@@ -5,8 +5,6 @@ import java.util.Iterator;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,12 +17,10 @@ import com.badlogic.gdx.utils.TimeUtils;
 
 
 public class Platformer extends ApplicationAdapter {
-  private Texture dropImage;
+  private Texture bulletImage;
   private Texture gunManImage;
   private Texture buttonImage;
   private Texture victimImage;
-  private Sound dropSound;
-  private Music rainMusic;
   private SpriteBatch batch;
   private OrthographicCamera camera;
   private Rectangle gunMan;
@@ -39,19 +35,12 @@ public class Platformer extends ApplicationAdapter {
   @Override
   public void create() {
 
-    // load the images for the droplet and the gunMan, 64x64 pixels each
-    dropImage = new Texture(Gdx.files.internal("droplet.png"));
+    // load the images for the bullet and the gunMan
+    bulletImage = new Texture(Gdx.files.internal("Bullet.png"));
     gunManImage = new Texture(Gdx.files.internal("Guy with the gun.png"));
     buttonImage = new Texture(Gdx.files.internal("Button.png"));
     victimImage = new Texture(Gdx.files.internal("Victim.png"));
 
-    // load the drop sound effect and the rain background "music"
-    dropSound = Gdx.audio.newSound(Gdx.files.internal("drop.wav"));
-    rainMusic = Gdx.audio.newMusic(Gdx.files.internal("rain.mp3"));
-
-    // start the playback of the background music immediately
-    rainMusic.setLooping(true);
-    rainMusic.play();
 
 
     // create the camera and the SpriteBatch
@@ -81,13 +70,13 @@ public class Platformer extends ApplicationAdapter {
     spawnVictim();
   }
 
-  private void spawnRaindrop() {
-    Rectangle raindrop = new Rectangle();
-    raindrop.x = gunMan.x + 64;
-    raindrop.y = gunMan.y;
-    raindrop.width = 64;
-    raindrop.height = 64;
-    bullets.add(raindrop);
+  private void spawnBullet() {
+    Rectangle bullet = new Rectangle();
+    bullet.x = gunMan.x + 64;
+    bullet.y = gunMan.y;
+    bullet.width = 64;
+    bullet.height = 64;
+    bullets.add(bullet);
     lastDropTime = TimeUtils.nanoTime();
   }
 
@@ -125,7 +114,7 @@ public class Platformer extends ApplicationAdapter {
     batch.draw(gunManImage, gunMan.x, gunMan.y, gunMan.width, gunMan.height);
     batch.draw(buttonImage, shootButton.x, shootButton.y, shootButton.width, shootButton.height);
     for (Rectangle raindrop : bullets) {
-      batch.draw(dropImage, raindrop.x, raindrop.y);
+      batch.draw(bulletImage, raindrop.x, raindrop.y);
     }
     for (Rectangle victim : victims) {
       batch.draw(victimImage, victim.x, victim.y, victim.width, victim.height);
@@ -140,7 +129,7 @@ public class Platformer extends ApplicationAdapter {
       Rectangle point = new Rectangle(touchPos.x, touchPos.y, 30, 30);
       if (lastDropTime + 500000000 < TimeUtils.nanoTime() && point.overlaps(shootButton)) {
 
-        spawnRaindrop();
+        spawnBullet();
       } else if (touchPos.x < Gdx.graphics.getWidth() / 2) {
         gunMan.y = touchPos.y - 64 / 2;
       }
@@ -150,7 +139,7 @@ public class Platformer extends ApplicationAdapter {
     if (Gdx.input.isKeyPressed(Keys.UP))
       gunMan.y += 200 * Gdx.graphics.getDeltaTime();
     if (Gdx.input.isKeyPressed(Keys.SPACE) && lastDropTime + 500000000 < TimeUtils.nanoTime()) {
-      spawnRaindrop();
+      spawnBullet();
     }
 
     // make sure the gunMan stays within the screen bounds
@@ -199,10 +188,10 @@ public class Platformer extends ApplicationAdapter {
   @Override
   public void dispose() {
     // dispose of all the native resources
-    dropImage.dispose();
+    bulletImage.dispose();
     gunManImage.dispose();
-    dropSound.dispose();
-    rainMusic.dispose();
+    buttonImage.dispose();
+    victimImage.dispose();
     batch.dispose();
   }
 
