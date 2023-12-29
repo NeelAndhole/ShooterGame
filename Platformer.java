@@ -26,7 +26,7 @@ public class Platformer extends ApplicationAdapter {
   private Rectangle gunMan;
   private Array<Rectangle> bullets;
   private Array<Rectangle> victims;
-  private long lastDropTime;
+  private long lastShootTime;
   private long lastVictimTime;
   private Rectangle shootButton;
 
@@ -73,11 +73,11 @@ public class Platformer extends ApplicationAdapter {
   private void spawnBullet() {
     Rectangle bullet = new Rectangle();
     bullet.x = gunMan.x + 64;
-    bullet.y = gunMan.y;
-    bullet.width = 64;
-    bullet.height = 64;
+    bullet.y = gunMan.y + gunMan.height / 2;
+    bullet.width = 32;
+    bullet.height = 16;
     bullets.add(bullet);
-    lastDropTime = TimeUtils.nanoTime();
+    lastShootTime = TimeUtils.nanoTime();
   }
 
   private void spawnVictim() {
@@ -93,10 +93,8 @@ public class Platformer extends ApplicationAdapter {
   @Override
   public void render() {
 
-    // clear the screen with a dark blue color. The
-    // arguments to clear are the red, green
-    // blue and alpha component in the range [0,1]
-    // of the color to be used to clear the screen.
+    // clears the screen and replaces it with a white screen
+    // arguments are red green blue and opacity bounded [0,1]
     ScreenUtils.clear(1, 1, 1, 1);
 
     // tell the camera to update its matrices.
@@ -113,8 +111,8 @@ public class Platformer extends ApplicationAdapter {
     batch.begin();
     batch.draw(gunManImage, gunMan.x, gunMan.y, gunMan.width, gunMan.height);
     batch.draw(buttonImage, shootButton.x, shootButton.y, shootButton.width, shootButton.height);
-    for (Rectangle raindrop : bullets) {
-      batch.draw(bulletImage, raindrop.x, raindrop.y);
+    for (Rectangle bullet : bullets) {
+      batch.draw(bulletImage, bullet.x, bullet.y, bullet.width, bullet.height);
     }
     for (Rectangle victim : victims) {
       batch.draw(victimImage, victim.x, victim.y, victim.width, victim.height);
@@ -127,7 +125,7 @@ public class Platformer extends ApplicationAdapter {
       touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
       camera.unproject(touchPos);
       Rectangle point = new Rectangle(touchPos.x, touchPos.y, 30, 30);
-      if (lastDropTime + 500000000 < TimeUtils.nanoTime() && point.overlaps(shootButton)) {
+      if (lastShootTime + 500000000 < TimeUtils.nanoTime() && point.overlaps(shootButton)) {
 
         spawnBullet();
       } else if (touchPos.x < Gdx.graphics.getWidth() / 2) {
@@ -138,7 +136,7 @@ public class Platformer extends ApplicationAdapter {
       gunMan.y -= 200 * Gdx.graphics.getDeltaTime();
     if (Gdx.input.isKeyPressed(Keys.UP))
       gunMan.y += 200 * Gdx.graphics.getDeltaTime();
-    if (Gdx.input.isKeyPressed(Keys.SPACE) && lastDropTime + 500000000 < TimeUtils.nanoTime()) {
+    if (Gdx.input.isKeyPressed(Keys.SPACE) && lastShootTime + 500000000 < TimeUtils.nanoTime()) {
       spawnBullet();
     }
 
@@ -154,8 +152,7 @@ public class Platformer extends ApplicationAdapter {
     }
 
     // move the bullets, remove any that are beneath the bottom edge of
-    // the screen or that hit the vicitms. In the latter case we play back
-    // a sound effect as well.
+    // the screen or that hit the victims.
     for (Iterator<Rectangle> iter = bullets.iterator(); iter.hasNext();) {
       Rectangle bullet = iter.next();
       bullet.x += 200 * Gdx.graphics.getDeltaTime();
